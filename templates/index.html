@@ -47,14 +47,12 @@
         <section class="photo-container">
             <div class="loading-bar" id="loading-bar"></div>
             {% if num_photos is not none %}
-                <div class="photo-container" id="photo-container">
-                    {% for thumbnail in photo_thumbnails %}
-                        <div class="thumbnail-container">
-                            <img class="thumbnail" src="{{ thumbnail }}=s200-c" alt="thumbnail">
-                        </div>
-                    {% endfor %}
-                </div>
-            {% endif %}
+            <div id="photo-container" style="grid-template-columns: repeat({{ num_columns }}, 1fr);">
+              {% for thumbnail in photo_thumbnails %}
+                  <img src="{{ thumbnail }}=s200-c" alt="thumbnail">
+              {% endfor %}
+          </div>
+                      {% endif %}
         </section>
     </main>
     <script>
@@ -102,7 +100,7 @@
     
       function reversePhotos() {
         const photoContainer = document.getElementById("photo-container");
-        const photos = [...photoContainer.querySelectorAll(".thumbnail-container")];
+        const photos = [...photoContainer.children];
         photos.reverse();
         photoContainer.innerHTML = "";
         photos.forEach((photo) => {
@@ -159,7 +157,3 @@
     
 </body>
 </html>
-
-
-
-
