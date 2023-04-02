@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Photos Album Viewer</title>
+    <link rel="stylesheet" href="static/style.css">
+
+    <!-- Add Dragula library for drag and drop functionality -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/dragula/3.7.2/dragula.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dragula/3.7.2/dragula.min.js"></script>
+
+    <!-- Add custom JavaScript file -->
+    <script src="static/scripts.js" defer></script>
+</head>
+
+<body>
+    <header>
+        <h1>Google Photos Album Viewer</h1>
+    </header>
+    <main>
+        <section class="form-container">
+            <form>
+                <div class="input-container">
+                    <label for="album">Select an album:</label>
+                    <select name="album_id" id="album">
+                      {% for option in album_options %}
+                          <option value="{{ option.id }}" {% if album_id == option.id %}selected{% endif %}>
+                              {{ option.title }} ({{ option.num_photos }} photos)
+                          </option>
+                      {% endfor %}
+                  </select>
+                </div>
+                <div class="input-container">
+                    <label for="num_columns">Number of columns:</label>
+                    <input type="number" name="num_columns" id="num_columns" min="1" max="100" value="{{ num_columns }}">
+                </div>
+                <div class="button-container">
+                    <button type="submit" id="view-album">View Album</button>
+                    <button type="button" id="reverse-button">Reverse Order</button> <!-- Add a button to reverse the order of the photos -->
+                </div>
+              </form>
+        </section>
+        <section class="photo-container">
+            <div class="loading-bar" id="loading-bar"></div>
+            {% if num_photos is not none %}
+                <div class="photo-grid" id="photo-container" style="grid-template-columns: repeat({{ num_columns }}, 1fr);">
+                    {% for thumbnail in photo_thumbnails %}
+                        <div class="thumbnail-container">
+                            <img class="thumbnail" src="{{ thumbnail }}=s200-c" alt="thumbnail">
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </section>
+    </main>
+    <script>
+      function showLoadingBar() {
+        document.getElementById("loading-bar").style.display = "block";
+      }
+    
+      function hideLoadingBar() {
+        document.getElementById("loading-bar").style.display = "none";
+      }
+    
+      function loadImages() {
+        const imgElements = document.querySelectorAll(".photo-thumbnail");
+    
+        if (imgElements.length === 0) {
+          hideLoadingBar();
+          return;
+        }
+    
+        let loadedImages = 0;
+    
+        imgElements.forEach((img) => {
+          img.onload = () => {
+            loadedImages++;
+            if (loadedImages === imgElements.length) {
+              hideLoadingBar();
+            }
+          };
+        });
+      }
+    
+      document.getElementById("view-album").addEventListener("click", () => {
+        showLoadingBar();
+      });
+    
+      window.addEventListener("load", () => {
+        setTimeout(loadImages, 100);
+      });
+    
+      // Add event listener to the Reverse Order button to reverse the order of the photos
+      document.getElementById("reverse-button").addEventListener("click", () => {
+        reversePhotos();
+      });
+    
+      function reversePhotos() {
+        const photoContainer = document.getElementById("photo-container");
+        const photos = [...photoContainer.children];
+        photos.reverse();
+        photoContainer.innerHTML = "";
+        photos.forEach((photo) => {
+          photoContainer.appendChild(photo);
+        });
+      }
+    </script>
+
+</body>
+</html>
+
+
+
+

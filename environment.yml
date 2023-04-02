@@ -1,0 +1,10 @@
+name: image_grid
+channels:
+  - conda-forge
+dependencies:
+  - python=3.8
+  - flask
+  - google-auth
+  - google-auth-oauthlib
+  - google-auth-httplib2
+  - google-api-python-client
