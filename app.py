@@ -1,12 +1,15 @@
+import io
 import os
 import json
 import pickle
+import requests
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 from google.oauth2.credentials import Credentials
-from flask import Flask, request, render_template
+from flask import Flask, request, render_template, send_file
+from PIL import Image
 
 app = Flask(__name__)
 
@@ -160,6 +163,33 @@ def get_album_photos():
     photos = results.get('mediaItems', [])
     num_photos = len(photos)
     return f'Total number of photos in the album: {num_photos}'
+
+@app.route('/export', methods=['POST'])
+def export():
+    data = request.get_json()
+    images = data['images']
+    num_columns = int(data['num_columns'])
+
+    rows = -(-len(images) // num_columns)
+    canvas_width = num_columns * 200
+    canvas_height = rows * 200
+
+    canvas = Image.new('RGB', (canvas_width, canvas_height))
+    
+    for idx, url in enumerate(images):
+        response = requests.get(url)
+        img = Image.open(io.BytesIO(response.content))
+        row = idx // num_columns
+        col = idx % num_columns
+        x = col * 200
+        y = row * 200
+        canvas.paste(img, (x, y))
+
+    img_bytes = io.BytesIO()
+    canvas.save(img_bytes, format='JPEG')
+    img_bytes.seek(0)
+    return send_file(img_bytes, mimetype='image/jpeg', as_attachment=True, download_name='album_export.jpg')
+
 
 if __name__ == "__main__":
     app.run()

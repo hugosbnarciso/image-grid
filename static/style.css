@@ -79,6 +79,8 @@ body {
     grid-gap: 0px;
     margin-top: 0px;
     line-height: 0;
+    gap: 0px;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   }
   
   #photo-container img {

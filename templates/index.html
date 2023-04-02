@@ -12,6 +12,8 @@
 
     <!-- Add custom JavaScript file -->
     <script src="static/scripts.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.3.3/html2canvas.min.js"></script>
+
 </head>
 
 <body>
@@ -38,13 +40,14 @@
                 <div class="button-container">
                     <button type="submit" id="view-album">View Album</button>
                     <button type="button" id="reverse-button">Reverse Order</button> <!-- Add a button to reverse the order of the photos -->
-                </div>
+                    <button type="button" id="export-button">Export</button>
+                  </div>
               </form>
         </section>
         <section class="photo-container">
             <div class="loading-bar" id="loading-bar"></div>
             {% if num_photos is not none %}
-                <div class="photo-grid" id="photo-container" style="grid-template-columns: repeat({{ num_columns }}, 1fr);">
+                <div class="photo-container" id="photo-container">
                     {% for thumbnail in photo_thumbnails %}
                         <div class="thumbnail-container">
                             <img class="thumbnail" src="{{ thumbnail }}=s200-c" alt="thumbnail">
@@ -55,6 +58,8 @@
         </section>
     </main>
     <script>
+      const numColumns = {{ num_columns }};
+    
       function showLoadingBar() {
         document.getElementById("loading-bar").style.display = "block";
       }
@@ -91,22 +96,67 @@
         setTimeout(loadImages, 100);
       });
     
-      // Add event listener to the Reverse Order button to reverse the order of the photos
       document.getElementById("reverse-button").addEventListener("click", () => {
         reversePhotos();
       });
     
       function reversePhotos() {
         const photoContainer = document.getElementById("photo-container");
-        const photos = [...photoContainer.children];
+        const photos = [...photoContainer.querySelectorAll(".thumbnail-container")];
         photos.reverse();
         photoContainer.innerHTML = "";
         photos.forEach((photo) => {
           photoContainer.appendChild(photo);
         });
       }
-    </script>
+    
+      function loadImage(src) {
+        return new Promise(function (resolve, reject) {
+          var img = new Image();
+          img.crossOrigin = "Anonymous";
+          img.onload = function () {
+            resolve(img);
+          };
+          img.onerror = function () {
+            reject(new Error("Failed to load image: " + src));
+          };
+          img.src = src;
+        });
+      }
+    
+      document.getElementById("export-button").addEventListener("click", async function (event) {
+    const photoContainer = document.getElementById("photo-container");
+    const imageElements = photoContainer.getElementsByTagName("img");
 
+    const imageUrls = Array.from(imageElements).map(img => img.src);
+
+    const response = await fetch("/export", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+            images: imageUrls,
+            num_columns: numColumns,
+        }),
+    });
+
+    if (response.ok) {
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = "album_export.jpg";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+    } else {
+        console.error("Failed to export album:", response.statusText);
+    }
+});
+    </script>
+    
 </body>
 </html>
 
