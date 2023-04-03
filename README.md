@@ -13,3 +13,6 @@ To Do:
 - Connect to other APIs
 - Ability to upload a local folder
 - Improve the export function to choose the pixel count
+
+# Disclaimer
+This code was 90% generated with ChatGPT4
